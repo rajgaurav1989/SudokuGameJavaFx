@@ -35,10 +35,6 @@ public class App extends Application {
         scene.getStylesheets().clear();
         scene.getStylesheets().add("file:///" + cssFile.getAbsolutePath().replace("\\", "/"));
 
-//        String idStr = "cell_1_1";
-//        TextField textField = (TextField) scene.lookup("#"+idStr);
-//        System.out.println(textField.getText());
-
         primaryStage.setTitle("Raj's Sudoku");
         primaryStage.setScene(scene);
         primaryStage.show();

@@ -7,6 +7,8 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 
 import java.security.acl.Group;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SudokuUIService {
 
@@ -20,6 +22,10 @@ public class SudokuUIService {
     private static final int NUM_CELL_COLS = 9 ;
     private static final String CELL_CLASS_NAME = "value-cell" ;
     private static final double LABEL_SIZE = 10 ;
+    private static final String CELL_KEY_PREFIX = "cell_" ;
+    private static final String KEY_SPLITTER = "_";
+
+    private Map<String,TextField> textFieldMap = new HashMap<>();
 
     public TextField[] getSudokuCells() {
         TextField cellTextFields[] = new TextField[NUM_CELL_ROWS * NUM_CELL_COLS] ;
@@ -32,8 +38,10 @@ public class SudokuUIService {
                 textField.getStyleClass().add(CELL_CLASS_NAME);
                 textField.setLayoutX(colIndex * CELL_SIZE + INITIAL_POSITION_X);
                 textField.setLayoutY(rowIndex * CELL_SIZE + INITIAL_POSITION_Y);
-                textField.setId("cell_"+rowIndex+"_"+colIndex);
-                textField.appendText((rowIndex+1)+"_"+(colIndex+1));
+                String keyId = CELL_KEY_PREFIX+rowIndex+KEY_SPLITTER+colIndex ;
+                textField.setId(keyId);
+                textFieldMap.put(keyId,textField);
+                //textField.appendText((rowIndex+1)+"_"+(colIndex+1));
                 cellTextFields[counter++] = textField ;
             }
         }
@@ -75,5 +83,8 @@ public class SudokuUIService {
         return labels ;
     }
 
+    public void initializeSudokuBoard() {
+
+    }
 
 }
