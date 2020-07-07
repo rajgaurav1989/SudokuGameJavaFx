@@ -20,29 +20,29 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        TextField textField = new TextField();
-        textField.setLayoutX(50);
-        textField.setLayoutY(50);
-        textField.getStyleClass().add("value-cell");
-
-
-//        Group childGroup = new Group();
-//        childGroup.setId("child-block");
-//        childGroup.getChildren().add(textField);
+        SudokuUIService sudokuUIService = new SudokuUIService() ;
 
         Group rootGroup = new Group();
-        rootGroup.setId("sudoku-board");
-        rootGroup.getChildren().add(textField);
-        // rootGroup.getChildren().add(childGroup);
+        rootGroup.getChildren().addAll(sudokuUIService.getSudokuCells());
+        rootGroup.getChildren().addAll(sudokuUIService.getBlockLines(true));
+        rootGroup.getChildren().addAll(sudokuUIService.getBlockLines(false));
+        rootGroup.getChildren().addAll(sudokuUIService.getLabels(true));
+        rootGroup.getChildren().addAll(sudokuUIService.getLabels(false));
 
-        Scene scene = new Scene(rootGroup, 600, 600);
+        Scene scene = new Scene(rootGroup, ProjectConstants.WINDOW_WIDTH, ProjectConstants.WINDOW_HEIGHT);
 
         File cssFile = new File("src/resources/sudoku.css");
         scene.getStylesheets().clear();
         scene.getStylesheets().add("file:///" + cssFile.getAbsolutePath().replace("\\", "/"));
 
+//        String idStr = "cell_1_1";
+//        TextField textField = (TextField) scene.lookup("#"+idStr);
+//        System.out.println(textField.getText());
+
         primaryStage.setTitle("Raj's Sudoku");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+
     }
 }
