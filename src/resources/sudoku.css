@@ -1,0 +1,34 @@
+*{
+    cell-size:60;
+    cell-background-color : #ff00ee;
+    cell-border-color: #E8E8E8;
+}
+
+
+.value-cell{
+    -fx-font-size: 14;
+    -fx-font-family: sans-serif;
+    -fx-background-color: cell-background-color;
+    -fx-padding : 10 ;
+    -fx-min-width: cell-size;
+    -fx-pref-width: cell-size;
+    -fx-max-width:  cell-size;
+    -fx-min-height: cell-size;
+    -fx-pref-height: cell-size;
+    -fx-max-height:  cell-size;
+    -fx-border-width: 5;
+    -fx-border-color: cell-border-color;
+}
+
+.child-block {
+    -fx-padding : 10px ;
+    -fx-min-width : 10px ;
+    -fx-min-width: 180px;
+    -fx-pref-width: 180px;
+    -fx-max-width:  180px;
+    -fx-min-height: 180px;
+    -fx-pref-height: 180px;
+    -fx-max-height:  180px;
+    -fx-border-width: 5px;
+    -fx-border-color: black;
+}
