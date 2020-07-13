@@ -12,14 +12,14 @@ import java.util.*;
 public class AlgoTest {
     private static final int SUDOKU_SIZE = 9;
     private static final int SUB_GRID_SIZE = (int) Math.sqrt(SUDOKU_SIZE);
-    private static final int NUM_ROUNDS = 2;
+    private static final int NUM_ROUNDS = 6;
     private static final int MINIMUM_NUMBER_OF_NON_EMPTY_CELLS = 20;
     private static final int BOUND = 10;
     private static final int LOWER_BOUND = 0;
     private static final int UPPER_BOUND = 7;
 
     public static void main(String[] args) {
-        int sudokuGrid[][] = getBlankSudokuBoard();
+        int[][] sudokuGrid = getBlankSudokuBoard();
         initializeSudokuSolution(sudokuGrid, getValueList());
         try {
             checkEmptyInSolvedSudoku(sudokuGrid);
@@ -47,9 +47,6 @@ public class AlgoTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        validity1 = isValidSudoku(sudokuGrid, false);
-        System.out.println("line 41 " + validity1 + " solutionSize = " + solutionSize);
-
     }
 
     private static List<Integer> getValueList() {
@@ -61,7 +58,7 @@ public class AlgoTest {
     }
 
     private static int[][] getBlankSudokuBoard() {
-        int sudokuGrid[][] = new int[SUDOKU_SIZE][SUDOKU_SIZE];
+        int[][] sudokuGrid = new int[SUDOKU_SIZE][SUDOKU_SIZE];
         for (int rowIndex = 0; rowIndex < SUDOKU_SIZE; rowIndex++) {
             for (int colIndex = 0; colIndex < SUDOKU_SIZE; colIndex++) {
                 sudokuGrid[rowIndex][colIndex] = 0;
@@ -70,7 +67,7 @@ public class AlgoTest {
         return sudokuGrid;
     }
 
-    private static boolean initializeSudokuSolution(int sudokuGrid[][], List<Integer> valueList) {
+    private static boolean initializeSudokuSolution(int[][] sudokuGrid, List<Integer> valueList) {
         for (int row = 0; row < SUDOKU_SIZE; row++) {
             for (int col = 0; col < SUDOKU_SIZE; col++) {
                 if (sudokuGrid[row][col] != 0) {
@@ -95,18 +92,7 @@ public class AlgoTest {
         return true;
     }
 
-    private static boolean isSudokuGridFull(int sudokuGrid[][]) {
-        for (int rowIndex = 0; rowIndex < SUDOKU_SIZE; rowIndex++) {
-            for (int colIndex = 0; colIndex < SUDOKU_SIZE; colIndex++) {
-                if (sudokuGrid[rowIndex][colIndex] != 0) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private static boolean isPresentInRowOrCol(int sudokuGrid[][], int row, int col, int cellValue, boolean isRow) {
+    private static boolean isPresentInRowOrCol(int[][] sudokuGrid, int row, int col, int cellValue, boolean isRow) {
         if (cellValue == 0) {
             return false;
         }
@@ -122,7 +108,7 @@ public class AlgoTest {
         return false;
     }
 
-    private static boolean isPresentInSubGrid(int sudokuGrid[][], int row, int col, int value) {
+    private static boolean isPresentInSubGrid(int[][] sudokuGrid, int row, int col, int value) {
         if (value == 0) {
             return false;
         }
@@ -144,7 +130,7 @@ public class AlgoTest {
         return false;
     }
 
-    private static boolean isValidSudoku(int sudokuGrid[][], boolean isSolution) {
+    private static boolean isValidSudoku(int[][] sudokuGrid, boolean isSolution) {
         for (int row = 0; row < SUDOKU_SIZE; row++) {
             for (int col = 0; col < SUDOKU_SIZE; col++) {
                 int cellVal = sudokuGrid[row][col];
@@ -158,7 +144,7 @@ public class AlgoTest {
         return true;
     }
 
-    private static void printSudokuBoard(int sudokuGrid[][]) {
+    private static void printSudokuBoard(int[][] sudokuGrid) {
         for (int rowIndex = 0; rowIndex < SUDOKU_SIZE; rowIndex++) {
             for (int colIndex = 0; colIndex < SUDOKU_SIZE; colIndex++) {
                 System.out.print(sudokuGrid[rowIndex][colIndex] + "\t");
@@ -167,7 +153,7 @@ public class AlgoTest {
         }
     }
 
-    private static int solveSudoku(int sudokuGrid[][], List<Integer> valueList, int solutionCtr, boolean isMulti) {
+    private static int solveSudoku(int[][] sudokuGrid, List<Integer> valueList, int solutionCtr, boolean isMulti) {
         for (int row = 0; row < SUDOKU_SIZE; row++) {
             for (int col = 0; col < SUDOKU_SIZE; col++) {
                 if (sudokuGrid[row][col] != 0) {
@@ -202,12 +188,13 @@ public class AlgoTest {
         return solutionCtr + 1;
     }
 
-    private static void generateSudokuPuzzle(int sudokuGrid[][], List<Integer> valueList) {
+    private static void generateSudokuPuzzle(int[][] sudokuGrid, List<Integer> valueList) {
         int rounds = NUM_ROUNDS;
         Stack<int[]> nonEmptyCells = getRandomNonEmptyCells(sudokuGrid);
         while (rounds > 0 && nonEmptyCells.size() >= MINIMUM_NUMBER_OF_NON_EMPTY_CELLS) {
-            int nonEmptyCell[] = nonEmptyCells.pop();
-            int copyGrid[][] = getSudokuGridCopy(sudokuGrid);
+            Collections.shuffle(nonEmptyCells);
+            int[] nonEmptyCell = nonEmptyCells.pop();
+            int[][] copyGrid = getSudokuGridCopy(sudokuGrid);
             copyGrid[nonEmptyCell[0]][nonEmptyCell[1]] = 0;
             int solutionCtr = solveSudoku(copyGrid, valueList, 0, true);
             if (solutionCtr > 1) {
@@ -219,7 +206,7 @@ public class AlgoTest {
         }
     }
 
-    private static Stack<int[]> getRandomNonEmptyCells(int sudokuGrid[][]) {
+    private static Stack<int[]> getRandomNonEmptyCells(int[][] sudokuGrid) {
         Stack<int[]> result = new Stack<>();
         Random rand = new Random();
         for (int row = 0; row < SUDOKU_SIZE; row++) {
@@ -235,8 +222,8 @@ public class AlgoTest {
         return result;
     }
 
-    private static int[][] getSudokuGridCopy(int sudokuGrid[][]) {
-        int copyGrid[][] = new int[SUDOKU_SIZE][SUDOKU_SIZE];
+    private static int[][] getSudokuGridCopy(int[][] sudokuGrid) {
+        int[][] copyGrid = new int[SUDOKU_SIZE][SUDOKU_SIZE];
         for (int row = 0; row < SUDOKU_SIZE; row++) {
             for (int col = 0; col < SUDOKU_SIZE; col++) {
                 copyGrid[row][col] = sudokuGrid[row][col];
@@ -245,7 +232,7 @@ public class AlgoTest {
         return copyGrid;
     }
 
-    private static boolean checkEmptyInSolvedSudoku(int sudokuGrid[][]) throws Exception {
+    private static boolean checkEmptyInSolvedSudoku(int[][] sudokuGrid) throws Exception {
         for (int row = 0; row < SUDOKU_SIZE; row++) {
             for (int col = 0; col < SUDOKU_SIZE; col++) {
                 if (sudokuGrid[row][col] == 0) {

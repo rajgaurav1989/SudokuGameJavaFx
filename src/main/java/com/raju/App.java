@@ -3,12 +3,9 @@ package com.raju;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.net.URL;
-
 
 /**
  * Hello world!
@@ -20,7 +17,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        SudokuUIService sudokuUIService = new SudokuUIService() ;
+        SudokuUIService sudokuUIService = new SudokuUIService();
 
         Group rootGroup = new Group();
         rootGroup.getChildren().addAll(sudokuUIService.getSudokuCells());
@@ -28,6 +25,14 @@ public class App extends Application {
         rootGroup.getChildren().addAll(sudokuUIService.getBlockLines(false));
         rootGroup.getChildren().addAll(sudokuUIService.getLabels(true));
         rootGroup.getChildren().addAll(sudokuUIService.getLabels(false));
+
+        sudokuUIService.initializeSudokuBoard(sudokuUIService.getValueList());
+
+        boolean validity = sudokuUIService.isValidSudoku(true);
+        System.out.println("line 30 " + validity);
+        sudokuUIService.generateSudokuPuzzle(sudokuUIService.getValueList());
+        validity = sudokuUIService.isValidSudoku(false);
+        System.out.println("line 33 " + validity);
 
         Scene scene = new Scene(rootGroup, ProjectConstants.WINDOW_WIDTH, ProjectConstants.WINDOW_HEIGHT);
 
