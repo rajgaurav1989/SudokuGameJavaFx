@@ -1,49 +1,52 @@
 package com.raju;
 
+import com.raju.controllers.SudokuController;
+import com.raju.enums.GameLevel;
+import com.raju.enums.SceneName;
+import com.raju.scenes.BoardScene;
+import com.raju.scenes.InitialScene;
+import com.raju.scenes.SceneInterface;
+import com.raju.services.SudokuUIService;
 import javafx.application.Application;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Hello world!
- */
 public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
 
+    private static Map<SceneName, Scene> sceneMap = new HashMap<>();
+    private static GameLevel gameLevel ;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-        SudokuUIService sudokuUIService = new SudokuUIService();
+        SudokuController.setSudokuController(primaryStage);
 
-        Group rootGroup = new Group();
-        rootGroup.getChildren().addAll(sudokuUIService.getSudokuCells());
-        rootGroup.getChildren().addAll(sudokuUIService.getBlockLines(true));
-        rootGroup.getChildren().addAll(sudokuUIService.getBlockLines(false));
-        rootGroup.getChildren().addAll(sudokuUIService.getLabels(true));
-        rootGroup.getChildren().addAll(sudokuUIService.getLabels(false));
+        SceneInterface startScene = new InitialScene();
+        SceneInterface boardScene = new BoardScene(SudokuUIService.getInstance());
 
-        sudokuUIService.initializeSudokuBoard(sudokuUIService.getValueList());
-
-        boolean validity = sudokuUIService.isValidSudoku(true);
-        System.out.println("line 30 " + validity);
-        sudokuUIService.generateSudokuPuzzle(sudokuUIService.getValueList());
-        validity = sudokuUIService.isValidSudoku(false);
-        System.out.println("line 33 " + validity);
-
-        Scene scene = new Scene(rootGroup, ProjectConstants.WINDOW_WIDTH, ProjectConstants.WINDOW_HEIGHT);
-
-        File cssFile = new File("src/resources/sudoku.css");
-        scene.getStylesheets().clear();
-        scene.getStylesheets().add("file:///" + cssFile.getAbsolutePath().replace("\\", "/"));
+        sceneMap.put(SceneName.INITIAL_SCENE, startScene.getScene());
+        sceneMap.put(SceneName.BOARD_SCENE, boardScene.getScene());
 
         primaryStage.setTitle("Raj's Sudoku");
-        primaryStage.setScene(scene);
+        primaryStage.setScene(startScene.getScene());
         primaryStage.show();
-
-
     }
+
+    public static Map<SceneName, Scene> getSceneMap() {
+        return sceneMap;
+    }
+
+    public static void setGameLevel(GameLevel level) {
+        gameLevel = level;
+    }
+
+    public static GameLevel getGameLevel() {
+        return gameLevel;
+    }
+
 }

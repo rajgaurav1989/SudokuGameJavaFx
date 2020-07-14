@@ -1,13 +1,25 @@
-package com.raju;
+package com.raju.services;
 
+import com.raju.App;
+import com.raju.ProjectConstants;
+import com.raju.StyleConstants;
+import com.raju.controllers.SudokuController;
+import com.raju.enums.GameLevel;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SudokuUIService {
 
@@ -20,14 +32,32 @@ public class SudokuUIService {
     private static final String CELL_CLASS_NAME = "value-cell";
     private static final double LABEL_SIZE = 10;
     private static final String KEY_SPLITTER = "_";
+    private static final String DIGIT_REGEX = "[0-9]+";
 
-    private static final int NUM_ROUNDS = 6;
-    private static final int MINIMUM_NUMBER_OF_NON_EMPTY_CELLS = 18;
+    private static final int NUM_ROUNDS = 7;
+    private static final int MINIMUM_NUMBER_OF_NON_EMPTY_CELLS_HARD = 19;
+    private static final int MINIMUM_NUMBER_OF_NON_EMPTY_CELLS_MEDIUM = 26;
+    private static final int MINIMUM_NUMBER_OF_NON_EMPTY_CELLS_EASY = 32;
+
     private static final int BOUND = 10;
     private static final int LOWER_BOUND = 0;
     private static final int UPPER_BOUND = 8;
 
-    public Map<String, TextField> boardMap = new HashMap<>();
+    private Map<String, TextField> boardMap = new HashMap<>();
+    private Label errorLabel;
+
+    private static SudokuUIService sudokuUIService;
+
+    private SudokuUIService() {
+
+    }
+
+    public static SudokuUIService getInstance() {
+        if (sudokuUIService == null) {
+            sudokuUIService = new SudokuUIService();
+        }
+        return sudokuUIService;
+    }
 
     public TextField[] getSudokuCells() {
         TextField[] cellTextFields = new TextField[SUDOKU_SIZE * SUDOKU_SIZE];
@@ -93,7 +123,7 @@ public class SudokuUIService {
         return valueList;
     }
 
-    public boolean initializeSudokuBoard(List<Integer> valueList) {
+    private boolean initializeSudokuBoard(List<Integer> valueList) {
         for (int row = 0; row < SUDOKU_SIZE; row++) {
             for (int col = 0; col < SUDOKU_SIZE; col++) {
                 String cellKey = row + KEY_SPLITTER + col;
@@ -219,10 +249,13 @@ public class SudokuUIService {
         return solutionCtr + 1;
     }
 
-    public void generateSudokuPuzzle(List<Integer> valueList) {
+    private void generateSudokuPuzzle(List<Integer> valueList) {
         int rounds = NUM_ROUNDS;
         Stack<int[]> nonEmptyCells = getRandomNonEmptyCells();
-        while (rounds > 0 && nonEmptyCells.size() >= MINIMUM_NUMBER_OF_NON_EMPTY_CELLS) {
+        GameLevel gameLevel = App.getGameLevel();
+        int minNumOfNonEmptyCells = gameLevel == GameLevel.HARD ? MINIMUM_NUMBER_OF_NON_EMPTY_CELLS_HARD :
+                (gameLevel == GameLevel.MEDIUM ? MINIMUM_NUMBER_OF_NON_EMPTY_CELLS_MEDIUM : MINIMUM_NUMBER_OF_NON_EMPTY_CELLS_EASY);
+        while (rounds > 0 && nonEmptyCells.size() >= minNumOfNonEmptyCells) {
             Collections.shuffle(nonEmptyCells);
             int[] nonEmptyCell = nonEmptyCells.pop();
             int[][] copyGrid = getSudokuGridCopy();
@@ -234,6 +267,27 @@ public class SudokuUIService {
                 TextField textField = boardMap.get(nonEmptyCell[0] + KEY_SPLITTER + nonEmptyCell[1]);
                 textField.setText("");
                 textField.setDisable(false);
+                textField.textProperty().addListener(((observable, oldValue, newValue) -> {
+                    if (StringUtils.isBlank(newValue)) {
+                        return;
+                    }
+                    newValue = newValue.trim();
+                    oldValue = StringUtils.isBlank(oldValue) ? "" : oldValue.trim();
+                    if (!newValue.matches(DIGIT_REGEX)) {
+                        textField.setText(oldValue);
+                    } else {
+                        int intVal = Integer.parseInt(newValue);
+                        if (isPresentInRowOrCol(null, nonEmptyCell[0], nonEmptyCell[1], intVal, true) ||
+                                isPresentInRowOrCol(null, nonEmptyCell[0], nonEmptyCell[1], intVal, false) ||
+                                isPresentInSubGrid(null, nonEmptyCell[0], nonEmptyCell[1], intVal)) {
+                            textField.setText(oldValue);
+                            errorLabel.setText("Invalid value " + intVal + " in row " + (nonEmptyCell[0] + 1) + " col " + (nonEmptyCell[1] + 1));
+                        } else {
+                            textField.setText(newValue);
+                            errorLabel.setText("");
+                        }
+                    }
+                }));
             }
         }
     }
@@ -267,5 +321,80 @@ public class SudokuUIService {
         return copyGrid;
     }
 
+    public void generatePuzzle() {
+        initializeSudokuBoard(sudokuUIService.getValueList());
+        boolean validity = isValidSudoku(true);
+        System.out.println("line 30 " + validity);
+        generateSudokuPuzzle(getValueList());
+        validity = isValidSudoku(false);
+        System.out.println("line 33 " + validity);
+    }
+
+    public Button getButton(String btnText, EventHandler<Event> buttonHandler) {
+        Button button = new Button(btnText);
+        button.setAlignment(Pos.CENTER);
+        button.setStyle(StyleConstants.GENERIC_ELEMENT_STYLE);
+        button.setOnMouseClicked(buttonHandler);
+        return button;
+    }
+
+    public Node getSideBar() {
+        VBox vBox = new VBox(ProjectConstants.VERTICAL_SPACING);
+        vBox.setLayoutX(ProjectConstants.WINDOW_WIDTH * 0.8);
+        vBox.setLayoutY(ProjectConstants.WINDOW_HEIGHT * 0.2);
+        SudokuController sudokuController = SudokuController.getInstance();
+        Map<String, EventHandler<Event>> buttonEventMap = new LinkedHashMap<>();
+
+        buttonEventMap.put(ProjectConstants.SUBMIT_BUTTON_TEXT, event -> sudokuController.handleSubmit());
+        buttonEventMap.put(ProjectConstants.QUIT_BUTTON_TEXT, event -> sudokuController.handleQuit());
+        buttonEventMap.put(ProjectConstants.RESTART_BUTTON_TEXT, event -> sudokuController.handleRestart());
+        buttonEventMap.put(ProjectConstants.RESET_BUTTON_TEXT, event -> sudokuController.handleReset());
+        buttonEventMap.put(ProjectConstants.CHECK_SOLUTION_BUTTON_TEXT, event -> sudokuController.handleCheckSolution());
+        vBox.getChildren().addAll(getSideBarButtons(buttonEventMap));
+
+        return vBox;
+    }
+
+    public void clearBoard() {
+        boardMap.values().forEach(e -> {
+            e.setText("");
+            e.setDisable(false);
+        });
+        errorLabel.setText("");
+    }
+
+    public void resetBoard() {
+        boardMap.values().forEach(e -> {
+            if (!e.isDisable()) {
+                e.setText("");
+            }
+        });
+        errorLabel.setText("");
+    }
+
+    private List<Node> getSideBarButtons(Map<String, EventHandler<Event>> buttonEventMap) {
+        return buttonEventMap.entrySet().stream().map(e -> getButton(e.getKey(), e.getValue())).collect(Collectors.toList());
+    }
+
+    public void populateSudokuBoard(int[][] sudokuGrid) {
+        for (int row = 0; row < SUDOKU_SIZE; row++) {
+            for (int col = 0; col < SUDOKU_SIZE; col++) {
+                boardMap.get(row + KEY_SPLITTER + col).setText(String.valueOf(sudokuGrid[row][col]));
+            }
+        }
+    }
+
+    public Label getErrorLabel() {
+        if (errorLabel == null) {
+            errorLabel = new Label();
+        }
+        if (StringUtils.isNotBlank(errorLabel.getText())) {
+            errorLabel.setText("");
+        }
+        errorLabel.setStyle(StyleConstants.LARGE_GENERIC_ELEMENT_STYLE);
+        errorLabel.setLayoutX(0.2 * ProjectConstants.WINDOW_WIDTH);
+        errorLabel.setLayoutY(0.90 * ProjectConstants.WINDOW_HEIGHT);
+        return errorLabel;
+    }
 
 }
